@@ -1,0 +1,70 @@
+digraph ComponentRelations{
+    ratio = .5
+    concentrate = true
+    // rankdir=LR
+    H2F_control_deploy [URL="https://github.com/lkzjdnb/H2F_control_deploy"]
+
+    graph [style="rounded"]
+    node [shape="box", style="rounded"]
+
+    subgraph cluster_testing {
+        style = "rounded"
+        H2F_test_devices
+        modbus_test_server
+        snap7_test_server
+        label = "Testing Utilities"
+    }
+
+    subgraph cluster_configurations {
+        grafana_dashboard_convert
+        bridge_config
+        compressor_HMI_regs_extract
+        label = "Configurations"
+    }
+
+    subgraph cluster_librairies {
+        industrial_device
+        modbus_device
+        S7_devices
+        label = "Librairies"
+    }
+
+    subgraph cluster_services {
+        industrial_bridge [URL="https://github.com/lkzjdnb/industrial_bridge"]
+        H2F_control
+        Grafana
+        InfluxDB
+        label = "HMI services"
+    }
+
+    subgraph cluster_deprectated {
+        DHBW_electrolyzer_rs
+        modbus_server
+        DHBW_electrolyzer
+        DHBW_compressor
+        label = "Deprecated"
+    }
+
+    subgraph cluster_data_collection {
+        electrolyzer_eta
+        DHBW_electrolyzer_dynamics
+        DHBW_electrolyzer_writer
+        label = "Specific-purpose data-collection utilities"
+    }
+
+    {modbus_device, S7_devices} -> industrial_device [label="Implements"]
+    {industrial_bridge, H2F_control} -> industrial_device [label="Uses"]
+    H2F_control_deploy -> {industrial_bridge, H2F_control, bridge_config, Grafana, InfluxDB} [label="Installs"]
+    industrial_bridge -> InfluxDB [label="Sends Data"]
+    Grafana -> InfluxDB [label="Query data"]
+    H2F_control -> Grafana [label="Displays graphs"]
+    industrial_bridge -> bridge_config [label="Configure"]
+    grafana_dashboard_convert -> Grafana [label="Define graphs"]
+    compressor_HMI_regs_extract -> bridge_config [label="Provide Registers"]
+    H2F_test_devices -> industrial_bridge [label="Emulate for components-graphtesting"]
+    H2F_test_devices -> {modbus_test_server, snap7_test_server} [label="Uses"]
+    industrial_bridge -> {DHBW_electrolyzer_rs, DHBW_compressor} [label="Replaces", style="dotted"]
+    modbus_test_server -> {modbus_server} [label="Replaces", style="dotted"]
+    {DHBW_electrolyzer_dynamics, DHBW_electrolyzer_writer, electrolyzer_eta} -> {modbus_device} [label="Uses"]
+    DHBW_electrolyzer_rs -> DHBW_electrolyzer [label="Replaces", style="dotted"]
+}
